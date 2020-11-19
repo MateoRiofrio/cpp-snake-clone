@@ -2,6 +2,7 @@
 #include <iostream>
 #include "rect.h"
 #include <vector>
+#include <ctime>
 
 using namespace std;
 
@@ -12,7 +13,9 @@ const color black(0,0,0);
 vector<Rect> grid;
 vector<Rect> snake;
 vector<Rect> lives;
+vector<Rect> apples;
 int snakeSpeed = 20;
+
 
 
 enum direction {
@@ -45,6 +48,7 @@ void initLives(){
     lives.at(0).setCenter(460,560);
     lives.at(1).setCenter(490,560);
     lives.at(2).setCenter(520,560);
+
 }
 
 void initSnake(){
@@ -57,9 +61,33 @@ void initSnake(){
 
 }
 void initApple(){
+    srand(time(NULL));
+    Rect apple;
+    dimensions boxDim(20,20);
+    int x,y;
+    x = rand() % 460 + 70; // GRID IS OF SIZE 530x530 (I think, math is hard)
+    y = rand() % 460 + 70;
+    x = ceil(x / 20) * 20 + 10; // MULTIPLES OF 20 plus 10.
+    y = ceil(y / 20) * 20 + 10;
+
+    apple.setCenter(x,y); //center of screen
+    apple.setSize(boxDim);
+    apple.setColor(white);
+    apples.push_back(apple);
+
 
 }
-
+void increaseSizeOfSnake(){
+    Rect unit;
+    double x, y; //position
+    dimensions boxDim(20,20);
+    x = snake.back().getCenterX() - 20;
+    y = snake.back().getCenterY();
+    unit.setCenter(x,y); //center of screen
+    unit.setSize(boxDim);
+    unit.setColor(white);
+    snake.push_back(unit);
+}
 void drawLabel(char *label, int x, int y){
     char *c;
     glPushMatrix();
@@ -73,7 +101,7 @@ void drawLabel(char *label, int x, int y){
     glPopMatrix();
 }
 bool isGameOver(){
-    return lives.empty();
+    return lives.size() == 1;
 }
 void init() {
     width = 600;
@@ -81,6 +109,8 @@ void init() {
     initGrid();
     initSnake();
     initLives();
+    initApple();
+
 }
 
 /* Initialize OpenGL Graphics */
@@ -117,6 +147,9 @@ void display() {
 
     for(Rect &r3 : lives){
         r3.draw();
+    }
+    for(Rect &r4 : apples){
+        r4.draw();
     }
     // displaying score and lives label.
     drawLabel("Score: ", 55,560);
@@ -180,15 +213,28 @@ void snakeTimer(int dummy) {
 
     for (auto & i : snake) {
         // Close window/exit game if snake hits a wall
-        // X-axis i.getRightX() > width-70 ||
-        if(i.getLeftX() < 70 ){
-            glutDestroyWindow(wd);
-            exit(0);
+        // X-axis
+        if(i.getRightX() > width-70 || i.getLeftX() < 70 ){
+            if(!isGameOver()){
+                lives.pop_back();
+                i.setCenter(310,330);
+            }
+            else{
+                glutDestroyWindow(wd);
+                exit(0);
+            }
+
         }
         // Y-axis
         if(i.getTopY() > height-100 || i.getBottomY() < 70){
-            glutDestroyWindow(wd);
-            exit(0);
+            if(!isGameOver()){
+                lives.pop_back();
+                i.setCenter(310,330);
+            }
+            else{
+                glutDestroyWindow(wd);
+                exit(0);
+            }
         }
         if(snakeDirection == RIGHT){
             i.moveX(snakeSpeed);
@@ -205,7 +251,7 @@ void snakeTimer(int dummy) {
 
     }
     glutPostRedisplay();
-    glutTimerFunc(90, snakeTimer, dummy); //increased to 90, otherwise zoom zoom
+    glutTimerFunc(100, snakeTimer, dummy); //increased to 90, otherwise zoom zoom
 }
 
 /* Main function: GLUT runs as a console application starting at main()  */
