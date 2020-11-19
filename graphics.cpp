@@ -2,6 +2,7 @@
 #include <iostream>
 #include "rect.h"
 #include <vector>
+
 using namespace std;
 
 GLdouble width, height;
@@ -10,7 +11,10 @@ const color white(1,1,1);
 const color black(0,0,0);
 vector<Rect> grid;
 vector<Rect> snake;
+vector<Rect> lives;
 int snakeSpeed = 20;
+
+
 enum direction {
     UP, DOWN,LEFT,RIGHT
 };
@@ -30,6 +34,18 @@ void initGrid(){
         }
     }
 }
+void initLives(){
+    for(int i = 0; i < 3; i++){
+        Rect live;
+        dimensions boxDim(20,20);
+        live.setSize(boxDim);
+        live.setColor(white);
+        lives.push_back(live);
+    }
+    lives.at(0).setCenter(460,560);
+    lives.at(1).setCenter(490,560);
+    lives.at(2).setCenter(520,560);
+}
 
 void initSnake(){
     Rect unit;
@@ -43,11 +59,28 @@ void initSnake(){
 void initApple(){
 
 }
+
+void drawLabel(char *label, int x, int y){
+    char *c;
+    glPushMatrix();
+    glTranslatef(x, y+8,0);
+    glScalef(0.11f,-0.10f,0);
+
+    for (c=label; *c != ' '; c++)
+    {
+        glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN , *c);
+    }
+    glPopMatrix();
+}
+bool isGameOver(){
+    return lives.empty();
+}
 void init() {
     width = 600;
     height = 600;
     initGrid();
     initSnake();
+    initLives();
 }
 
 /* Initialize OpenGL Graphics */
@@ -70,7 +103,9 @@ void display() {
 
     // Clear the color buffer with current clearing color
     glClear(GL_COLOR_BUFFER_BIT); // DO NOT CHANGE THIS LINE
-    
+
+
+    // DRAW HERE
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // DO NOT CHANGE THIS LINE
     for(Rect &r : grid){
         r.draw();
@@ -79,7 +114,14 @@ void display() {
     for(Rect &r2 : snake){
         r2.draw();
     }
-    
+
+    for(Rect &r3 : lives){
+        r3.draw();
+    }
+    // displaying score and lives label.
+    drawLabel("Score: ", 55,560);
+    drawLabel("Lives: ", 380,560);
+
     glFlush();  // Render now
 }
 
@@ -138,8 +180,8 @@ void snakeTimer(int dummy) {
 
     for (auto & i : snake) {
         // Close window/exit game if snake hits a wall
-        // X-axis
-        if(i.getRightX() > width-70 || i.getLeftX() < 70 ){
+        // X-axis i.getRightX() > width-70 ||
+        if(i.getLeftX() < 70 ){
             glutDestroyWindow(wd);
             exit(0);
         }
