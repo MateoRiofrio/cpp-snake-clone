@@ -16,12 +16,12 @@ vector<Rect> lives;
 vector<Rect> apples;
 int snakeSpeed = 20;
 
-
-
 enum direction {
     UP, DOWN,LEFT,RIGHT
 };
 short snakeDirection = RIGHT;
+
+void spawnNewApple();
 
 void initGrid(){
 
@@ -61,8 +61,15 @@ void initSnake(){
 
 }
 void initApple(){
+    spawnNewApple();
+
+}
+void spawnNewApple() {
     srand(time(NULL));
-    Rect apple;
+    if(!apples.empty()){
+        apples.pop_back();
+    }
+    Rect newApple;
     dimensions boxDim(20,20);
     int x,y;
     x = rand() % 460 + 70; // GRID IS OF SIZE 530x530 (I think, math is hard)
@@ -70,11 +77,10 @@ void initApple(){
     x = ceil(x / 20) * 20 + 10; // MULTIPLES OF 20 plus 10.
     y = ceil(y / 20) * 20 + 10;
 
-    apple.setCenter(x,y); //center of screen
-    apple.setSize(boxDim);
-    apple.setColor(white);
-    apples.push_back(apple);
-
+    newApple.setCenter(x,y); //center of screen
+    newApple.setSize(boxDim);
+    newApple.setColor(white);
+    apples.push_back(newApple);
 
 }
 void increaseSizeOfSnake(){
@@ -100,9 +106,12 @@ void drawLabel(char *label, int x, int y){
     }
     glPopMatrix();
 }
+
 bool isGameOver(){
     return lives.size() == 1;
 }
+
+
 void init() {
     width = 600;
     height = 600;
@@ -236,6 +245,9 @@ void snakeTimer(int dummy) {
                 exit(0);
             }
         }
+        if(i.isOverlapping(apples.back())){
+            spawnNewApple();
+        }
         if(snakeDirection == RIGHT){
             i.moveX(snakeSpeed);
         }
@@ -253,6 +265,8 @@ void snakeTimer(int dummy) {
     glutPostRedisplay();
     glutTimerFunc(100, snakeTimer, dummy); //increased to 90, otherwise zoom zoom
 }
+
+
 
 /* Main function: GLUT runs as a console application starting at main()  */
 int main(int argc, char** argv) {
