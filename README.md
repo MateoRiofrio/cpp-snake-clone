@@ -27,3 +27,5 @@ To run you need Lisa's "Graphics Starter" Clion files (CmakeLists.txt, etc) and 
 ``` 
 git clone [repo ssh address]
 ```
+
+By Mateo Riofrio
