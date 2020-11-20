@@ -2,8 +2,8 @@
 
 ## Table of Contents
   - [Description](#description)
-    - [Programs](#programs:)
-    - [Commands](#Keyboard commands:)
+    - [Programs](#programs)
+    - [Commands](#keyboard commands:)
   - [Setup](#setup)
   
 ## Description
