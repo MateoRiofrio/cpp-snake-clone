@@ -3,7 +3,7 @@
 ## Table of Contents
   - [Description](#description)
     - [Programs](#programs)
-    - [Commands](#keyboard commands:)
+    - [Commands](#programs)
   - [Setup](#setup)
   
 ## Description
