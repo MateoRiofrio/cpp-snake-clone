@@ -3,7 +3,6 @@
 #include "rect.h"
 #include <vector>
 #include <ctime>
-
 using namespace std;
 
 GLdouble width, height;
@@ -22,6 +21,21 @@ enum direction {
 };
 short snakeDirection = RIGHT;
 
+/* Lisa's drawLabel code */
+void drawLabel(char *label, int x, int y){
+    char *c;
+    glPushMatrix();
+    glTranslatef(x, y+8,0);
+    glColor3f(1,1,1);
+    glScalef(0.11f,-0.10f,0);
+
+    for (c=label; *c != ' '; c++)
+    {
+        glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN , *c);
+    }
+    glPopMatrix();
+}
+/* spawn a Rect object representing the "food" the snake has to touch */
 void spawnNewApple() {
     srand(time(NULL));
     if(!apples.empty()){
@@ -41,25 +55,85 @@ void spawnNewApple() {
     apples.push_back(newApple);
 
 }
-
-void drawLabel(char *label, int x, int y){
-    char *c;
-    glPushMatrix();
-    glTranslatef(x, y+8,0);
-    glColor3f(1,1,1);
-    glScalef(0.11f,-0.10f,0);
-
-    for (c=label; *c != ' '; c++)
-    {
-        glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN , *c);
-    }
-    glPopMatrix();
-}
-
+/* determine if game is over */
 bool isGameOver(){
     return lives.size() == 1;
 }
+/* add a Rect object to the snake vector */
+void increaseSizeOfSnake(){
+    Rect unit;
+    dimensions boxDim(20,20);
+    unit.setSize(boxDim);
+    unit.setColor(white);
+    snake.push_back(unit);
+}
 
+/* Movement and Collisions involved with the snake actions. */
+void handleMovementAndCollisions(){
+    // Close window/exit game if snake hits a wall
+    // X-axis
+    if(snake.front().getLeftX() > width-50.0 || snake.front().getRightX() < 50){
+        if(!isGameOver()){
+            lives.pop_back();
+            snake.front().setCenter(290,270);
+        }
+        else{
+            glutDestroyWindow(wd);
+            exit(0);
+        }
+
+    }
+    // Y-axis
+    if(snake.front().getTopY() > height-100 || snake.front().getBottomY() < 50){
+        if(!isGameOver()){
+            lives.pop_back();
+            snake.front().setCenter(290,270);
+        }
+        else{
+            glutDestroyWindow(wd);
+            exit(0);
+        }
+    }
+    if(snake.front().isOverlapping(apples.back())){
+        spawnNewApple();
+        increaseSizeOfSnake();
+    }
+    // MOVEMENT
+    if(snakeDirection == RIGHT){
+        snake.front().moveX(snakeSpeed);
+    }
+    else if(snakeDirection == LEFT){
+        snake.front().moveX(-snakeSpeed);
+    }
+    else if(snakeDirection == UP){
+        snake.front().moveY(-snakeSpeed);
+    }
+    else if(snakeDirection == DOWN){
+        snake.front().moveY(snakeSpeed);
+    }
+
+    // BODY COLLISIONS
+    for (int i = snake.size()-1; i > 0; i--) {
+        // Handle body collisions.
+        if(snake.front().getCenterX() == snake.at(i).getCenterX()
+           && snake.front().getCenterY() == snake.at(i).getCenterY()){
+            if(!isGameOver()){
+                lives.pop_back();
+                snake.front().setCenter(290,270);
+            }
+            else{
+                glutDestroyWindow(wd);
+                exit(0);
+            }
+        }
+        // Have body trail the head of the snake.
+        snake.at(i).setCenter(snake.at(i-1).getCenter());
+
+
+    }
+
+}
+/* initializes Rect object "box" or the walls/limits of the game */
 void initBox(){
 
     dimensions boxDim(520,520);
@@ -67,9 +141,8 @@ void initBox(){
     box.setCenter(300,300);
     box.setColor(white);
 }
-
+/* hides the snake leaving the limits of the "box" object. */
 void initBorder(){
-
     // Draw top horizontal border.
     for(int x = 30; x < width-30; x+=20){
         Rect unit;
@@ -109,7 +182,7 @@ void initBorder(){
     }
 
 }
-
+/* initializes the Rect objects representing the lives of the snake */
 void initLives(){
     for(int i = 0; i < 3; i++){
         Rect live;
@@ -123,9 +196,9 @@ void initLives(){
     lives.at(2).setCenter(170,590);
 
 }
-
+/* creates the Rect objects representing the snake */
 void initSnake(){
-    for(int i = 0; i < 4; i++){
+    for(int i = 0; i < 3; i++){
         Rect unit;
         dimensions boxDim(20,20);
         unit.setSize(boxDim);
@@ -135,67 +208,13 @@ void initSnake(){
     snake.at(0).setCenter(290,270);
     snake.at(1).setCenter(270,270);
     snake.at(2).setCenter(250,270);
-    snake.at(3).setCenter(230,270);
 
 }
-
-void increaseSizeOfSnake(){
-    Rect unit;
-    dimensions boxDim(20,20);
-    unit.setSize(boxDim);
-    unit.setColor(white);
-    snake.push_back(unit);
-}
+/* spawns a new apple at the beginning of the game */
 void initApple(){
     spawnNewApple();
 }
-void drawSnake(){
-        // Close window/exit game if snake hits a wall
-        // X-axis
-        if(snake.front().getLeftX() > width-50.0 || snake.front().getRightX() < 50){
-            if(!isGameOver()){
-                lives.pop_back();
-                snake.front().setCenter(290,270);
-            }
-            else{
-                glutDestroyWindow(wd);
-                exit(0);
-            }
-
-        }
-        // Y-axis
-        if(snake.front().getTopY() > height-100 || snake.front().getBottomY() < 50){
-            if(!isGameOver()){
-                lives.pop_back();
-                snake.front().setCenter(290,270);
-            }
-            else{
-                glutDestroyWindow(wd);
-                exit(0);
-            }
-        }
-        if(snake.front().isOverlapping(apples.back())){
-            spawnNewApple();
-            increaseSizeOfSnake();
-        }
-        if(snakeDirection == RIGHT){
-            snake.front().moveX(snakeSpeed);
-        }
-        else if(snakeDirection == LEFT){
-            snake.front().moveX(-snakeSpeed);
-        }
-        else if(snakeDirection == UP){
-            snake.front().moveY(-snakeSpeed);
-        }
-        else if(snakeDirection == DOWN){
-            snake.front().moveY(snakeSpeed);
-        }
-
-    for (int i = snake.size()-1; i > 0; i--) {
-        // Have body trail the head of the snake.
-        snake.at(i).setCenter(snake.at(i-1).getCenter());
-    }
-}
+/* initializes all init functions */
 void init() {
     width = 600;
     height = 650;
@@ -229,14 +248,13 @@ void display() {
 
 
     // DRAW HERE
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // DO NOT CHANGE THIS LINE
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     box.draw();
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     for(Rect &r2 : snake){
         r2.draw();
     }
-
     for(Rect &r3 : lives){
         r3.draw();
     }
@@ -246,7 +264,7 @@ void display() {
     for(Rect &r5: border){
         r5.draw();
     }
-    drawSnake();
+    handleMovementAndCollisions();
     drawLabel("Lives: ", 30,590);
 
     glFlush();  // Render now
@@ -263,7 +281,7 @@ void kbd(unsigned char key, int x, int y)
 
     glutPostRedisplay();
 }
-
+/* handles arrow key actions aka the movement of the snake */
 void kbdS(int key, int x, int y) {
     switch(key) {
         case GLUT_KEY_DOWN:
@@ -291,25 +309,11 @@ void kbdS(int key, int x, int y) {
     glutPostRedisplay();
 }
 
-void cursor(int x, int y) {
-
-    glutPostRedisplay();
-}
-
-// button will be GLUT_LEFT_BUTTON or GLUT_RIGHT_BUTTON
-// state will be GLUT_UP or GLUT_DOWN
-void mouse(int button, int state, int x, int y) {
-
-    glutPostRedisplay();
-}
-
 void snakeTimer(int dummy) {
 
     glutPostRedisplay();
-    glutTimerFunc(70, snakeTimer, dummy); //increased to 90, otherwise zoom zoom
+    glutTimerFunc(90, snakeTimer, dummy); //increased to 90, otherwise zoom zoom
 }
-
-
 
 /* Main function: GLUT runs as a console application starting at main()  */
 int main(int argc, char** argv) {
@@ -321,7 +325,7 @@ int main(int argc, char** argv) {
     glutInitDisplayMode(GLUT_RGBA);
 
     glutInitWindowSize((int)width, (int)height);
-    glutInitWindowPosition(600, 200); // Position the window's initial top-left corner
+    glutInitWindowPosition(300, 200); // Position the window's initial top-left corner
     /* create the window and store the handle to it */
     wd = glutCreateWindow("Snake!");
 
@@ -337,12 +341,6 @@ int main(int argc, char** argv) {
 
     // register special event: function keys, arrows, etc.
     glutSpecialFunc(kbdS);
-
-    // handles mouse movement
-    glutPassiveMotionFunc(cursor);
-
-    // handles mouse click
-    glutMouseFunc(mouse);
 
     // handles timer
     glutTimerFunc(0, snakeTimer, 0);
