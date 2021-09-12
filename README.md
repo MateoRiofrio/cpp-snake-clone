@@ -1,4 +1,5 @@
 # M4OEP Graphics: Snake
+![snake2](https://user-images.githubusercontent.com/8117699/132993784-d38df4a7-9a10-4396-b5c1-ad4fca8fb277.PNG)
 
 ## Table of Contents
   - [Description](#description)
